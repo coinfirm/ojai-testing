@@ -70,7 +70,7 @@ lazy val maprdbconnector = project.in(file("."))
 
     resolvers += "MapR Releases" at "http://repository.mapr.com/maven/",
 
-    resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
+    resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
 
     libraryDependencies ++= Seq(
       "com.mapr.ojai" % "mapr-ojai-driver" % "6.1.0-mapr",
