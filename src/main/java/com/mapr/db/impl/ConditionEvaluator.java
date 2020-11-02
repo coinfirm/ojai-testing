@@ -2,6 +2,7 @@ package com.mapr.db.impl;
 
 import com.github.anicolaspp.ojai.DocumentProjector;
 import com.mapr.db.rowcol.KeyValue;
+import com.mapr.fs.proto.Dbfilters;
 import org.ojai.Document;
 import org.ojai.Value;
 import org.ojai.store.Connection;
@@ -32,7 +33,7 @@ public class ConditionEvaluator {
             return getAllLeafValues(projected, "")
                     .filter(pair -> pair._1.equals(leaf.getField().asPathString().replace("[]", "")))
                     .map(Tuple2::_2)
-                    .anyMatch(value -> cmp(leaf.getValue(), value));
+                    .anyMatch(value -> cmp(leaf.getValue(), value, leaf.getOp()));
         } else {
             ConditionBlock block = (ConditionBlock) condition;
 
@@ -46,7 +47,7 @@ public class ConditionEvaluator {
         }
     }
 
-    private boolean cmp(KeyValue keyValue, Value value) {
+    private boolean cmp(KeyValue keyValue, Value value, Dbfilters.CompareOpProto op) {
         switch (value.getType()) {
 
             case NULL:
@@ -54,7 +55,18 @@ public class ConditionEvaluator {
             case BOOLEAN:
                 return keyValue.getBoolean() == value.getBoolean();
             case STRING:
-                return keyValue.getString().equals(value.getString());
+                switch (op) {
+                    case LESS:
+                        return value.getString().compareTo(keyValue.getString()) < 0;
+                    case LESS_OR_EQUAL:
+                        return value.getString().compareTo(keyValue.getString()) <= 0;
+                    case GREATER:
+                        return value.getString().compareTo(keyValue.getString()) > 0;
+                    case GREATER_OR_EQUAL:
+                        return value.getString().compareTo(keyValue.getString()) >= 0;
+                    default:
+                        return keyValue.getString().equals(value.getString());
+                }
             case BYTE:
                 return keyValue.getByte() == value.getByte();
             case SHORT:
